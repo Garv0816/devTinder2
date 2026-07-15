@@ -6,10 +6,10 @@ const app = express()
 app.use(express.json())
 // sign up api 
 app.post("/signup" , async(req ,res)=>{
-    console.log(req.body)
-    const user = new User(req.body)
+    //console.log(req.body)
 try{
- await user.save()
+    const user = new User(req.body)
+    await user.save()
     res.send("User Added Successfully")
 }
 catch(err){
@@ -36,12 +36,34 @@ app.get("/feed", async (req ,res)=>{
 })
 
 //Updating the user data
-app.patch("/user",async (req,res) => {  
-    const userID =  req.body.userID
+app.patch("/user/:userID",async (req,res) => {  
+    try{
+    const userID = req.params?.userID
+    console.log(req.params)
     const data =  req.body
+
+    const ALLOWED_UPDATE = [
+        "firstName" ,
+        "lastName",
+        "PhotoURL",
+        "age",
+        "skills",
+        "about"
+    ]
+
+    const isUpdateAllowed = Object.keys(data).every(k => ALLOWED_UPDATE.includes(k))
+
+    if(!isUpdateAllowed){
+    throw new Error("This field update is not allowed ")}
+
     await User.findByIdAndUpdate(userID,data , {runValidators : true})
     res.send("User Updated Successfully")
-    
+}
+catch(err){
+    console.log(err.message)
+    res.status(400).send("Data can't be Updated" + err.message)
+}
+   
 })
 //delete API
 app.delete("/delete" , async(req ,res)=>{

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const validator =  require("validator")
 const userSchema = mongoose.Schema({
     firstName : {
         type : String,
@@ -14,7 +15,12 @@ const userSchema = mongoose.Schema({
         type : String,
         required : true,
         unique: true,
-        trim :true
+        trim :true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("Email is Not Valid")
+            }
+        }
     },
     password : {
         type : String
@@ -34,7 +40,15 @@ const userSchema = mongoose.Schema({
     },
     PhotoURL : {
         type: String,
-        default : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNWr0iIiYwfxb1MpyodoY45N8QTPFp-sphaeHtF7gnrA&s=10"
+        default : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNWr0iIiYwfxb1MpyodoY45N8QTPFp-sphaeHtF7gnrA&s=10",
+
+        validate(value){
+            if(!validator.isURL(value)){
+                throw new Error("Invalid photo url")
+            }
+        }
+
+
     },
     skills : {
         type : [String]
@@ -42,7 +56,9 @@ const userSchema = mongoose.Schema({
     },
     about:{
         type : String,
-        default : "Hi there ! "
+        default : "Hi there ! ",
+        min : 10,
+        max : 100
     }
 
 })
