@@ -1,14 +1,30 @@
 const express = require('express')
 const connectDB = require("./config/database")
 const User = require("./models/users")
+const signupValidator =  require("./middleware/Validation")
+const bycrypt = require("bcrypt")
 const app = express()
 
 app.use(express.json())
 // sign up api 
 app.post("/signup" , async(req ,res)=>{
-    //console.log(req.body)
 try{
-    const user = new User(req.body)
+    // validating user data ....
+    signupValidator(req)
+
+    // encrypting password
+    const {firstName , lastName , email, password, skills, gender} = req.body
+    const encryptPassword = await bycrypt.hash(password , 10)
+    console.log(encryptPassword)
+    //saving user to database
+    const user = new User({
+        firstName,
+        lastName,
+        email,
+        skills,
+        gender,
+        password : encryptPassword
+    })
     await user.save()
     res.send("User Added Successfully")
 }
@@ -19,6 +35,31 @@ catch(err){
 }
 )
 
+//login api
+app.post("/login" , async(req, res)=>{
+    //validation of email
+    try{
+    const {email , password} = req.body
+    const isUserPresent = await User.findOne({email : email})
+    if(!isUserPresent){
+       throw new Error("Invalid creditial")
+    }
+    // comparing encrypted passoword hash
+    const isPasswordValid = await bycrypt.compare(password , isUserPresent.password)
+
+    if(!isPasswordValid){
+        throw new Error("Invalid Credentials")
+    }
+    res.send("Login successfull")
+}
+
+
+    catch(err){
+        res.status(400).send("Logic failed  " + err.message)
+    }
+    
+    // comparing password
+})
 // get user data by email
 app.get("/user", async (req, res) => {
     const users = await User.find({email:req.body.email });
