@@ -12,7 +12,7 @@ try{
     if(!decodedJWTTOKEN){
         throw new Error("Please Login")
     }
-    const UserData =  await User.find({_id : decodedJWTTOKEN})
+    const UserData =  await User.findOne({_id : decodedJWTTOKEN})
 
     req.UserData = UserData
     next()
